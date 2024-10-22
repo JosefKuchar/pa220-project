@@ -1,0 +1,94 @@
+# Task B
+# Profiling Source Data
+
+
+---
+### staging.car_info
+- Total number of records: 53
+
+car_key
+- unique values: 53
+- inconsistencies:
+
+
+company_key
+- unique values: 9
+- inconsistencies:
+    No inconsistencies - all references are valid
+
+
+license_plate
+- unique values: 53
+- inconsistencies:
+    Some license plates numbers are containing pipe character '|'
+    For consistency we propose to replace the pipe character with a dash character '-'
+    Dash character is more common in license plates - we would need more context to decide if this is a valid character in license plates
+
+
+make
+- unique values: 17
+- inconsistencies:
+    Inconsistent capitalization (e.g. 'Scania', 'SCANIA')
+    - We propose to convert all values to uppercase
+    Trailings spaces (e.g. 'MB ')
+    - We propose to remove all trailing spaces
+    Different representations of missing values (e.g. '', null, '------')
+    - We propose to convert all missing values to NULL
+
+
+color
+- unique values: 22
+- inconsistencies:
+    Inconsistent capitalization (e.g. '#0000ff', '#0000FF')
+    - We propose to convert all values to uppercase
+    Some values are not represented as RGB colors (e.g. 'alpine white')
+    - We propose to convert all values to RGB format
+    Missing values are represented as empty strings
+    - We propose to convert all missing values to NULL
+
+
+tonnage
+- unique values: 15
+- inconsistencies:
+    Some values are 0.0
+    - We propose to convert all 0.0 values to NULL
+    Range of values is suspicious (0.9 - 25.0)
+    - We need to check if units are correct
+
+
+type
+- unique values: 5
+- inconsistencies:
+
+
+---
+### staging.import_connection
+- Total number of records: 848903
+- Unique values in sim_imsi: 57
+
+---
+### staging.import_health
+- Total number of records: 465429
+- Unique values in car_key: 53
+
+---
+//NOTE: We are not sure about this part, because PDF assignment is not consistent with this template file
+## Relationship between import_connection and import_health
+- Number of records in import_connection directly referenced from import_health: 465813
+`select count(staging.import_connection.*) from staging.import_connection inner join staging.import_health on staging.import_connection.log_key = staging.import_health.log_key;`
+
+- Average number of records in import_connection paired with import_health: 1.001238078
+```
+SELECT AVG(RecordCount) AS AverageCount
+FROM (
+    SELECT staging.import_health.log_key, COUNT(staging.import_connection.log_key) AS RecordCount
+    FROM staging.import_health
+    LEFT JOIN staging.import_connection ON staging.import_health.log_key = staging.import_connection.log_key
+    GROUP BY staging.import_health.log_key
+) AS Counts;
+```
+
+- Propose a solution how to match other records in import_connection to relevant import_health:
+    - Link import_connection to import_health by time (using appropriate time window)
+    - Link subsequent import_connection records to the same import_health record using sim_imsi
+

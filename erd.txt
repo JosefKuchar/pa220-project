@@ -1,0 +1,73 @@
+# Dimensional Model Description
+
+![ERD of star schema](erd.png)
+
+## Dimensions
+> Possible degenerate dimensions should be listed at the fact table.
+
+### Car_Dimension
+- This dimension represents individual car
+- SCD type: Type 2
+- Type 2 was chosen because we want to keep track of changes in car attributes over time (e.g. license plate number for speeding tickets)
+
+### AppInstance_Dimension
+- This dimension represents individual application instance
+- It was created to easily filter out, aggregate data for specific application instance
+- SCD type: None
+
+### Phone_Dimension
+- This dimension represents individual phone
+- It was created to easily filter out, aggregate data for specific phone
+- SCD type: None
+
+### GPS_Dimension
+- This dimension represents individual GPS location
+- It was created to easily filter out, aggregate data for specific GPS location
+- And to have ability to add additional attributes (like city, country, etc.) in the future
+- SCD type: None
+
+### Company_Dimension
+- This dimension represents individual company
+- It was created to easily filter out, aggregate data for specific company
+- SCD type: None
+
+### Driver_Dimension
+- This dimension represents individual driver
+- It was created to easily filter out, aggregate data for specific driver
+- SCD type: Type 1
+- Type 1 was chosen because we don't need to keep track of changes in driver's name and we only care about current driver information
+
+### Operator_Dimension
+- This dimension represents individual operator
+- It was created to easily filter out, aggregate data for specific operator
+- SCD type: None
+
+//NOTE: Changes in car association to app instance are reflected by relations in fact table
+
+## Fact table
+
+- Type: snapshot
+- Primary key selection (fact granularity): Car, AppInstance, Time, GPS, Phone, Company, Driver, Operator (granularity is corresponding to one health record in original representation)
+
+### Degenerate dimension: Time_Dimension
+- It's a degenerate dimension because it's part of primary key in fact table, but doesn't contain any additional attributes
+
+### Service_Key
+- Original primary key from import_health table
+- Type: non-additive
+
+### Number_of_Connections
+- Aggregated number of connections related to health record as proposed in Part B (values.txt)
+- Type: additive
+
+### Battery_Level
+- Phone battery level at the time of health record
+- Type: non-additive
+
+### App_Runtime
+- Application runtime at the time of health record
+- Type: non-additive
+
+### Dev_Runtime
+- Device runtime at the time of health record
+- Type: non-additive
