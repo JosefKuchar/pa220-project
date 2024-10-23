@@ -91,4 +91,5 @@ FROM (
 - Propose a solution how to match other records in import_connection to relevant import_health:
     - Link import_connection to import_health by time (using appropriate time window)
     - Link subsequent import_connection records to the same import_health record using sim_imsi
+        - We can find the last health report with the same sim_imsi and link the connection report to it
 
