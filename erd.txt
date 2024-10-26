@@ -3,7 +3,6 @@
 ![ERD of star schema](erd.png)
 
 ## Dimensions
-> Possible degenerate dimensions should be listed at the fact table.
 
 ### Car_Dimension
 - This dimension represents individual car
@@ -18,12 +17,6 @@
 ### Phone_Dimension
 - This dimension represents individual phone
 - It was created to easily filter out, aggregate data for specific phone
-- SCD type: None
-
-### GPS_Dimension
-- This dimension represents individual GPS location
-- It was created to easily filter out, aggregate data for specific GPS location
-- And to have ability to add additional attributes (like city, country, etc.) in the future
 - SCD type: None
 
 ### Company_Dimension
@@ -47,10 +40,14 @@
 ## Fact table
 
 - Type: snapshot
-- Primary key selection (fact granularity): Car, AppInstance, Time, GPS, Phone, Company, Driver, Operator (granularity is corresponding to one health record in original representation)
+- Primary key selection (fact granularity): Car, AppInstance, Time, Location, Phone, Company, Driver, Operator (granularity is corresponding to one health record in original representation)
 
 ### Degenerate dimension: Time_Dimension
 - It's a degenerate dimension because it's part of primary key in fact table, but doesn't contain any additional attributes
+
+### Degenerate dimension: Location_Dimension
+- It's a degenerate dimension because it's part of primary key in fact table, but doesn't contain any additional attributes
+- This dimension represents individual GPS location
 
 ### Service_Key
 - Original primary key from import_health table
@@ -70,4 +67,8 @@
 
 ### Dev_Runtime
 - Device runtime at the time of health record
+- Type: non-additive
+
+### Device_Name
+- Device name (model)
 - Type: non-additive
