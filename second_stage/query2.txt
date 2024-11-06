@@ -1,0 +1,22 @@
+# Query 1
+
+SELECT ....
+
+
+- Total time to execute: ... seconds
+
+- Comment on idea of your select: 
+> optional if you feel so
+ ...
+
+- Output: 
+> paste up to 50 rows in plain text
+> e.g.:
+> day   | version | conn_count
+> 01    | A60     | 503
+> ...
+
+
+- Explain:
+> paste output of explain analyse select... (as plain text, not JSON!)
+

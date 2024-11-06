@@ -1,0 +1,23 @@
+# Query Car
+
+SELECT ....
+
+
+- Total time to execute: ... seconds
+
+- Comment on the rows returned: 
+> e.g., presence of null values, zeroes
+ ...
+
+- Output: 
+> paste up all rows in plain text
+> e.g.:
+> date       | license_plate | company             | duty_cycle_hours
+> ...
+> 2023-01-02 | 8F98112       | EagleEye Transports |              5.5
+> ...
+
+
+- Explain:
+> paste output of explain analyse select... (as plain text, not JSON!)
+

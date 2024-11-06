@@ -1,0 +1,20 @@
+# Query to optimize
+
+- Time to execute the unmodified query: ... milliseconds
+
+- Explain plan of the unmodifed query:
+> paste output of explain analyse select... (as plain text, not JSON!)
+...
+
+
+- Time to execute the modified query: ... milliseconds
+
+- Explain plan of the unmodifed query:
+> paste output of explain analyse select... (as plain text, not JSON!)
+...
+
+
+- Comment on the idea of optimization:
+> e.g., indexes, query rewrite
+ ...
+

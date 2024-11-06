@@ -1,0 +1,28 @@
+# Query 1
+
+SELECT Count(*),
+       Date(time_conn),
+       program_ver
+FROM   staging.import_connection
+WHERE  time_conn BETWEEN '2023-03-01 00:00:00' AND '2023-03-31 23:59:59'
+GROUP  BY cube( Date(time_conn), program_ver )
+ORDER  BY Date(time_conn) DESC,
+          program_ver DESC;
+
+
+- Total time to execute: 6.358 seconds
+
+- Comment on idea of your select:
+GROUP BY CUBE was obvious
+
+- Output:
+> paste up to 50 rows in plain text
+> e.g.:
+> day   | version | conn_count
+> 01    | A60     | 503
+> ...
+
+
+- Explain:
+> paste output of explain analyse select... (as plain text, not JSON!)
+

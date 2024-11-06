@@ -1,0 +1,6 @@
+# Authors of home assignment (one line per student; overwrite values)
+- uco, last name, first name
+- uco, last name, first name
+
+# IP address of your virtual machine (private one)
+172.26.x.y
