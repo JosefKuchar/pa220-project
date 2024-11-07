@@ -1,15 +1,40 @@
 # Query Car
 
-SELECT ....
+SELECT   to_char(DATE(min("inner".TIME)), 'DD/MM/YYYY') AS "date",
+         min("inner".company_name)                      AS company_name,
+         min("inner".license_plate)                     AS license_plate,
+         SUM("inner".time_dif) / 60                     AS duty_cycle
+FROM     (
+                   SELECT    f.TIME            AS "time",
+                             comp.company      AS company_name,
+                             car.license_plate AS license_plate,
+                             CASE
+                                       WHEN f.TIME - lag(f.TIME) over (ORDER BY f.TIME) <= interval '11 minutes' THEN extract('Minute' FROM (f.TIME - lag(f.TIME) over (ORDER BY f.TIME)))
+                                       ELSE 0
+                             END                AS time_dif
+                   FROM      PUBLIC.fact_status AS f
+                   left join PUBLIC.dim_car     AS car
+                   ON        f.car_id = car.car_id
+                   left join PUBLIC.dim_company AS comp
+                   ON        f.company_id = comp.company_id
+                   WHERE     car.car_key =
+                             (
+                                    SELECT car_key
+                                    FROM   PUBLIC.dim_car
+                                    WHERE  license_plate = 'UF00LM3'
+                                    AND    "current_row" = 'active')
+                   AND       f.TIME BETWEEN timestamp '2023-03-01 00:00:00' AND       timestamp '2023-04-30 23:59:59' ) AS "inner"
+GROUP BY DATE("inner".TIME)
+ORDER BY DATE("inner".TIME) ASC ;
 
 
 - Total time to execute: ... seconds
 
-- Comment on the rows returned: 
+- Comment on the rows returned:
 > e.g., presence of null values, zeroes
  ...
 
-- Output: 
+- Output:
 > paste up all rows in plain text
 > e.g.:
 > date       | license_plate | company             | duty_cycle_hours

@@ -1,15 +1,24 @@
 # Query 1
 
-SELECT ....
+SELECT Min(f.sim_imsi)                     AS sim_imsi,
+       f.device_name                       AS device_name,
+       To_char(Date(f.time), 'YYYY-MM-DD') AS "date",
+       Count(*)                            AS restart_count
+FROM   public.fact_status AS f
+WHERE  f.dev_run_time < 0.2
+GROUP  BY Date(f.time),
+          f.device_name
+ORDER  BY restart_count DESC
+LIMIT  10;
 
 
 - Total time to execute: ... seconds
 
-- Comment on idea of your select: 
+- Comment on idea of your select:
 > optional if you feel so
  ...
 
-- Output: 
+- Output:
 > paste up to 50 rows in plain text
 > e.g.:
 > day   | version | conn_count
