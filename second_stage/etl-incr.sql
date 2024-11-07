@@ -84,12 +84,12 @@ INSERT INTO PUBLIC.fact_status
              dev_run_time,
              battery_level,
              conn_count)
-SELECT comp.company_id,
-       car.car_id,
-       driver.driver_id,
+SELECT COALESCE(comp.company_id, -1),
+       COALESCE(car.car_id, -1),
+       COALESCE(driver.driver_id, -1),
        "time".time_id,
        "date".date_id,
-       op.operator_id,
+       COALESCE(op.operator_id, -1),
        device_name,
        sim_imsi,
        program_ver,
@@ -116,12 +116,12 @@ FROM   staging.fact_status_upd AS f
               ON f.gsmnet_id = op.mcc
                                || op.mnc
 WHERE  ( f.time BETWEEN car.valid_from AND car.valid_to
-          OR car.current_row = 'active' )
+          OR car.current_row = 'active' OR car.car_key IS NUll)
        AND ( f.time BETWEEN comp.valid_from AND comp.valid_to
-              OR comp.current_row = 'active' )
+              OR comp.current_row = 'active' OR comp.company_key IS NULL)
        AND ( f.time BETWEEN driver.valid_from AND driver.valid_to
-              OR driver.current_row = 'active' )
-       AND NOT f.gsmnet_id = '';
+              OR driver.current_row = 'active' OR driver.driver_key IS NULL)
+	   AND f.time IS NOT NULL;
 
 -- It must be able to run as is, i.e., psql <etl-incr.sql
 
