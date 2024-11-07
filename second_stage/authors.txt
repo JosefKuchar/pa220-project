@@ -3,4 +3,4 @@
 - 567769, Kuchař, Josef
 
 # IP address of your virtual machine (private one)
-172.26.x.y
+172.26.7.255

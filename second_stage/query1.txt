@@ -16,13 +16,81 @@ ORDER  BY Date(time_conn) DESC,
 GROUP BY CUBE was obvious
 
 - Output:
-> paste up to 50 rows in plain text
-> e.g.:
-> day   | version | conn_count
-> 01    | A60     | 503
-> ...
+| count  | date       | program_ver |
+|--------|------------|-------------|
+| 293938 | NULL       | NULL        |
+| 15908  | NULL       | A61         |
+| 272978 | NULL       | A60         |
+| 5052   | NULL       | A47         |
+| 9469   | 2023-03-31 | NULL        |
+| 335    | 2023-03-31 | A61         |
+| 8956   | 2023-03-31 | A60         |
+| 178    | 2023-03-31 | A47         |
+| 10196  | 2023-03-30 | NULL        |
+| 486    | 2023-03-30 | A61         |
+| 9473   | 2023-03-30 | A60         |
+| 237    | 2023-03-30 | A47         |
+| 11159  | 2023-03-29 | NULL        |
+| 229    | 2023-03-29 | A61         |
+| 10712  | 2023-03-29 | A60         |
+| 218    | 2023-03-29 | A47         |
+| 11793  | 2023-03-28 | NULL        |
+| 216    | 2023-03-28 | A61         |
+| 11277  | 2023-03-28 | A60         |
+| 300    | 2023-03-28 | A47         |
+| 10883  | 2023-03-27 | NULL        |
+| 237    | 2023-03-27 | A61         |
+| 10401  | 2023-03-27 | A60         |
+| 245    | 2023-03-27 | A47         |
+| 5345   | 2023-03-26 | NULL        |
+| 214    | 2023-03-26 | A61         |
+| 5131   | 2023-03-26 | A60         |
+| 5944   | 2023-03-25 | NULL        |
+| 240    | 2023-03-25 | A61         |
+| 5690   | 2023-03-25 | A60         |
+| 14     | 2023-03-25 | A47         |
+| 9484   | 2023-03-24 | NULL        |
+| 528    | 2023-03-24 | A61         |
+| 8708   | 2023-03-24 | A60         |
+| 248    | 2023-03-24 | A47         |
+| 10036  | 2023-03-23 | NULL        |
+| 561    | 2023-03-23 | A61         |
+| 9195   | 2023-03-23 | A60         |
+| 280    | 2023-03-23 | A47         |
+| 11043  | 2023-03-22 | NULL        |
+| 364    | 2023-03-22 | A61         |
+| 10408  | 2023-03-22 | A60         |
+| 271    | 2023-03-22 | A47         |
+| 10276  | 2023-03-21 | NULL        |
+| 172    | 2023-03-21 | A61         |
+| 9826   | 2023-03-21 | A60         |
+| 278    | 2023-03-21 | A47         |
+| 10908  | 2023-03-20 | NULL        |
+| 292    | 2023-03-20 | A61         |
 
 
 - Explain:
-> paste output of explain analyse select... (as plain text, not JSON!)
+QUERY PLAN
+Sort  (cost=130374.98..131845.81 rows=588332 width=16) (actual time=193.333..193.338 rows=120 loops=1)
+  Sort Key: (date(time_conn)) DESC, program_ver DESC
+  Sort Method: quicksort  Memory: 31kB
+  ->  MixedAggregate  (cost=52168.97..63938.82 rows=588332 width=16) (actual time=126.576..193.298 rows=120 loops=1)
+        Hash Key: program_ver
+        Group Key: (date(time_conn)), program_ver
+        Group Key: (date(time_conn))
+        Group Key: ()
+        Batches: 1  Memory Usage: 24kB
+        ->  Sort  (cost=52168.97..52904.92 rows=294380 width=8) (actual time=126.487..146.186 rows=293938 loops=1)
+              Sort Key: (date(time_conn)) DESC NULLS LAST, program_ver DESC NULLS LAST
+              Sort Method: external merge  Disk: 5200kB
+              ->  Seq Scan on import_connection  (cost=0.00..21403.49 rows=294380 width=8) (actual time=6.034..85.533 rows=293938 loops=1)
+                    Filter: ((time_conn >= '2023-03-01 00:00:00+01'::timestamp with time zone) AND (time_conn <= '2023-03-31 23:59:59+02'::timestamp with time zone))
+                    Rows Removed by Filter: 554773
+Planning Time: 0.067 ms
+JIT:
+  Functions: 12
+  Options: Inlining false, Optimization false, Expressions true, Deforming true
+  Timing: Generation 0.963 ms, Inlining 0.000 ms, Optimization 0.263 ms, Emission 5.603 ms, Total 6.829 ms
+Execution Time: 195.067 ms
+
 

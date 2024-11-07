@@ -28,21 +28,88 @@ GROUP BY DATE("inner".TIME)
 ORDER BY DATE("inner".TIME) ASC ;
 
 
-- Total time to execute: ... seconds
+- Total time to execute: 0.254 seconds
 
 - Comment on the rows returned:
-> e.g., presence of null values, zeroes
- ...
+- Our solution takes counts only intervals where two consecutive records were less than 11 minutes apart.
+- It should provide valid result even if the car drives from 8:00 to 10:00 and then from 16:00 to 18:00 (We think that the correct answer should be 4 hours).
+- We saw that status is being reported every 10 minutes from the data, thats how we choose the 11 minutes constant.
+It might be necessary to change it after gaining deeper knowledge about the system.
 
 - Output:
-> paste up all rows in plain text
-> e.g.:
-> date       | license_plate | company             | duty_cycle_hours
-> ...
-> 2023-01-02 | 8F98112       | EagleEye Transports |              5.5
-> ...
+| date       | company_name        | license_plate | duty_cycle       |
+|------------|---------------------|---------------|------------------|
+| 01/03/2023 | EagleEye Transports | 8F98112       | 23.8333333333333 |
+| 02/03/2023 | EagleEye Transports | 8F98112       | 23.65            |
+| 03/03/2023 | EagleEye Transports | 8F98112       | 16.9833333333333 |
+| 04/03/2023 | EagleEye Transports | 8F98112       | 22.8333333333333 |
+| 05/03/2023 | EagleEye Transports | 8F98112       | 22.1666666666667 |
+| 06/03/2023 | EagleEye Transports | 8F98112       | 23.3333333333333 |
+| 07/03/2023 | EagleEye Transports | 8F98112       | 17.6666666666667 |
+| 08/03/2023 | EagleEye Transports | 8F98112       | 24               |
+| 09/03/2023 | EagleEye Transports | 8F98112       | 23.1666666666667 |
+| 10/03/2023 | EagleEye Transports | 8F98112       | 13.3333333333333 |
+| 13/03/2023 | EagleEye Transports | 8F98112       | 20.3333333333333 |
+| 14/03/2023 | EagleEye Transports | 8F98112       | 23.3333333333333 |
+| 15/03/2023 | EagleEye Transports | 8F98112       | 22.6666666666667 |
+| 16/03/2023 | EagleEye Transports | 8F98112       | 22.3333333333333 |
+| 17/03/2023 | EagleEye Transports | 8F98112       | 24               |
+| 18/03/2023 | EagleEye Transports | 8F98112       | 24               |
+| 19/03/2023 | EagleEye Transports | 8F98112       | 23.9833333333333 |
+| 20/03/2023 | EagleEye Transports | 8F98112       | 23.5             |
+| 14/04/2023 | Skyline Freightways | UF00LM3       | 0                |
+| 17/04/2023 | Skyline Freightways | UF00LM3       | 12               |
+| 18/04/2023 | Skyline Freightways | UF00LM3       | 23.8333333333333 |
+| 19/04/2023 | Skyline Freightways | UF00LM3       | 23.4833333333333 |
+| 20/04/2023 | Skyline Freightways | UF00LM3       | 23.6666666666667 |
+| 21/04/2023 | Skyline Freightways | UF00LM3       | 24               |
+| 22/04/2023 | Skyline Freightways | UF00LM3       | 24               |
+| 23/04/2023 | Skyline Freightways | UF00LM3       | 23.65            |
+| 24/04/2023 | Skyline Freightways | UF00LM3       | 23               |
+| 25/04/2023 | Skyline Freightways | UF00LM3       | 23.6666666666667 |
+| 26/04/2023 | Skyline Freightways | UF00LM3       | 23.8333333333333 |
+| 27/04/2023 | Skyline Freightways | UF00LM3       | 23.6666666666667 |
+| 28/04/2023 | Skyline Freightways | UF00LM3       | 14               |
 
 
 - Explain:
-> paste output of explain analyse select... (as plain text, not JSON!)
+QUERY PLAN
+GroupAggregate  (cost=17211.46..17434.67 rows=5466 width=132) (actual time=207.362..208.556 rows=31 loops=1)
+  Group Key: (date("inner"."time"))
+  ->  Sort  (cost=17211.46..17225.88 rows=5771 width=270) (actual time=207.317..207.785 rows=4010 loops=1)
+        Sort Key: (date("inner"."time"))
+        Sort Method: quicksort  Memory: 472kB
+        ->  Subquery Scan on "inner"  (cost=15962.38..16850.92 rows=5771 width=270) (actual time=196.030..207.208 rows=4010 loops=1)
+              ->  WindowAgg  (cost=15962.38..16778.79 rows=5771 width=266) (actual time=196.028..206.707 rows=4010 loops=1)
+                    InitPlan 1 (returns $0)
+                      ->  Seq Scan on dim_car  (cost=0.00..1.81 rows=1 width=4) (actual time=0.012..0.013 rows=1 loops=1)
+                            Filter: (((license_plate)::text = 'UF00LM3'::text) AND ((current_row)::text = 'active'::text))
+                            Rows Removed by Filter: 55
+                    ->  Gather Merge  (cost=15960.57..16632.70 rows=5771 width=234) (actual time=196.021..205.105 rows=4010 loops=1)
+                          Workers Planned: 2
+                          Params Evaluated: $0
+                          Workers Launched: 2
+                          ->  Sort  (cost=14960.55..14966.56 rows=2405 width=234) (actual time=136.650..136.695 rows=1337 loops=3)
+                                Sort Key: f."time"
+                                Sort Method: quicksort  Memory: 25kB
+                                Worker 0:  Sort Method: quicksort  Memory: 135kB
+                                Worker 1:  Sort Method: quicksort  Memory: 324kB
+                                ->  Hash Left Join  (cost=14.61..14825.49 rows=2405 width=234) (actual time=116.083..136.380 rows=1337 loops=3)
+                                      Hash Cond: (f.company_id = comp.company_id)
+                                      ->  Hash Join  (cost=1.69..14806.05 rows=2405 width=20) (actual time=115.822..135.966 rows=1337 loops=3)
+                                            Hash Cond: (f.car_id = car.car_id)
+                                            ->  Parallel Seq Scan on fact_status f  (cost=0.00..14437.23 rows=129855 width=16) (actual time=0.219..112.658 rows=104228 loops=3)
+                                                  Filter: (("time" >= '2023-03-01 00:00:00'::timestamp without time zone) AND ("time" <= '2023-04-30 23:59:59'::timestamp without time zone))
+                                                  Rows Removed by Filter: 99784
+                                            ->  Hash  (cost=1.68..1.68 rows=1 width=12) (actual time=0.011..0.011 rows=2 loops=3)
+                                                  Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                                  ->  Seq Scan on dim_car car  (cost=0.00..1.68 rows=1 width=12) (actual time=0.008..0.008 rows=2 loops=3)
+                                                        Filter: (car_key = $0)
+                                                        Rows Removed by Filter: 54
+                                      ->  Hash  (cost=11.30..11.30 rows=130 width=222) (actual time=0.031..0.032 rows=10 loops=2)
+                                            Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                            ->  Seq Scan on dim_company comp  (cost=0.00..11.30 rows=130 width=222) (actual time=0.020..0.022 rows=10 loops=2)
+Planning Time: 1.726 ms
+Execution Time: 208.602 ms
+
 

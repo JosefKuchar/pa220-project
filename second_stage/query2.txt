@@ -12,20 +12,48 @@ ORDER  BY restart_count DESC
 LIMIT  10;
 
 
-- Total time to execute: ... seconds
+- Total time to execute: 3.286 seconds
 
 - Comment on idea of your select:
-> optional if you feel so
- ...
+Our approach was based on the information from the first homework stating that we can find restarts by looking for records with run time close to zero.
 
 - Output:
-> paste up to 50 rows in plain text
-> e.g.:
-> day   | version | conn_count
-> 01    | A60     | 503
-> ...
+| sim_imsi        | device_name | date       | restart_count |
+|-----------------|-------------|------------|---------------|
+| 57prpd2YWhCHfw2 | M2006C3LG   | 2023-02-06 | 8             |
+| AYrPJL8V6VgQEm9 | M2006C3LG   | 2023-03-03 | 5             |
+| AYrPJL8V6VgQEm9 | M2006C3LG   | 2023-01-23 | 5             |
+| 230027585511405 | Redmi Go    | 2023-02-06 | 5             |
+| 230027585511405 | Redmi Go    | 2023-02-10 | 5             |
+| 57prpd2YWhCHfw2 | M2006C3LG   | 2023-02-20 | 5             |
+| 230027585511405 | Redmi Go    | 2023-02-07 | 5             |
+| 230027585511405 | Redmi Go    | 2023-01-26 | 5             |
+| 57prpd2YWhCHfw2 | M2006C3LG   | 2023-01-26 | 5             |
+| 230027585517414 | DUB-LX1     | 2023-01-12 | 4             |
 
 
 - Explain:
-> paste output of explain analyse select... (as plain text, not JSON!)
+QUERY PLAN
+Limit  (cost=11502.85..11502.87 rows=10 width=85) (actual time=121.916..121.954 rows=10 loops=1)
+  ->  Sort  (cost=11502.85..11504.60 rows=702 width=85) (actual time=121.914..121.951 rows=10 loops=1)
+        Sort Key: (count(*)) DESC
+        Sort Method: top-N heapsort  Memory: 27kB
+        ->  Finalize GroupAggregate  (cost=11393.09..11487.68 rows=702 width=85) (actual time=121.267..121.855 rows=458 loops=1)
+              Group Key: (date("time")), device_name
+              ->  Gather Merge  (cost=11393.09..11467.80 rows=584 width=61) (actual time=121.251..121.532 rows=555 loops=1)
+                    Workers Planned: 2
+                    Workers Launched: 2
+                    ->  Partial GroupAggregate  (cost=10393.07..10400.37 rows=292 width=61) (actual time=72.164..72.250 rows=185 loops=3)
+                          Group Key: (date("time")), device_name
+                          ->  Sort  (cost=10393.07..10393.80 rows=292 width=36) (actual time=72.156..72.166 rows=245 loops=3)
+                                Sort Key: (date("time")), device_name
+                                Sort Method: quicksort  Memory: 56kB
+                                Worker 0:  Sort Method: quicksort  Memory: 44kB
+                                Worker 1:  Sort Method: quicksort  Memory: 32kB
+                                ->  Parallel Seq Scan on fact_status f  (cost=0.00..10381.11 rows=292 width=36) (actual time=0.093..72.012 rows=245 loops=3)
+                                      Filter: (dev_run_time < 0.2)
+                                      Rows Removed by Filter: 153252
+Planning Time: 0.201 ms
+Execution Time: 122.010 ms
+
 

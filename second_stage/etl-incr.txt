@@ -1,10 +1,15 @@
 # Incremental ETL process
 
-- Total time to insert new data in staging: ... seconds
+- Total time to insert new data in staging: 9.691 seconds
 
 [ETL incremental script](etl-incr.sql)
 
 
 - Comment on the ideas/steps used in the implementation:
 - We suppose that the data in update table is already cleaned and validated (We didn't normalize the data on purpose - IVECO -> Iveco)
+- We created new records in the date dimension for each missing date
+- We decided to filter out 11 fact update records that contained lots of null values
+- We decided to substitute missing foreign keys with -1 as we saw this approach had been used before in the public schema
+- We wanted to link dimensions that were valid at the time of each fact update record, but the 'valid_from' value is 2024-11-01 for all companies for example
+- To solve this issue, we added the "OR car.current_row = 'active'" condition
 
