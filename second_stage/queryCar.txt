@@ -33,8 +33,8 @@ ORDER BY DATE("inner".TIME) ASC ;
 - Comment on the rows returned:
 - Our solution takes counts only intervals where two consecutive records were less than 11 minutes apart.
 - It should provide valid result even if the car drives from 8:00 to 10:00 and then from 16:00 to 18:00 (We think that the correct answer should be 4 hours).
-- We saw that status is being reported every 10 minutes from the data, thats how we choose the 11 minutes constant.
-It might be necessary to change it after gaining deeper knowledge about the system.
+- We saw that status is being reported every 10 minutes from the data, that's how we choose the 11 minutes constant.
+- It might be necessary to change it after gaining deeper knowledge about the system.
 
 - Output:
 | date       | company_name        | license_plate | duty_cycle       |

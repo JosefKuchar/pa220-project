@@ -1,20 +1,99 @@
 # Query to optimize
 
-- Time to execute the unmodified query: ... milliseconds
+- Time to execute the unmodified query: ~100 milliseconds
 
 - Explain plan of the unmodifed query:
+QUERY PLAN
+Finalize GroupAggregate  (cost=14920.72..14934.65 rows=55 width=16) (actual time=105.874..105.932 rows=11 loops=1)
+  Group Key: dim_car.license_plate
+  ->  Gather Merge  (cost=14920.72..14933.55 rows=110 width=16) (actual time=105.868..105.923 rows=13 loops=1)
+        Workers Planned: 2
+        Workers Launched: 2
+        ->  Sort  (cost=13920.69..13920.83 rows=55 width=16) (actual time=98.224..98.228 rows=4 loops=3)
+              Sort Key: dim_car.license_plate
+              Sort Method: quicksort  Memory: 25kB
+              Worker 0:  Sort Method: quicksort  Memory: 25kB
+              Worker 1:  Sort Method: quicksort  Memory: 25kB
+              ->  Partial HashAggregate  (cost=13918.55..13919.10 rows=55 width=16) (actual time=98.207..98.213 rows=4 loops=3)
+                    Group Key: dim_car.license_plate
+                    Batches: 1  Memory Usage: 24kB
+                    Worker 0:  Batches: 1  Memory Usage: 24kB
+                    Worker 1:  Batches: 1  Memory Usage: 24kB
+                    ->  Hash Join  (cost=57.85..13905.36 rows=2638 width=12) (actual time=27.601..98.134 rows=508 loops=3)
+                          Hash Cond: (fact_status.date_id = dim_date.date_id)
+                          ->  Hash Join  (cost=54.12..13894.47 rows=2638 width=16) (actual time=27.561..98.031 rows=508 loops=3)
+                                Hash Cond: (fact_status.car_id = dim_car.car_id)
+                                ->  Hash Join  (cost=51.86..13884.76 rows=2638 width=12) (actual time=27.538..97.944 rows=508 loops=3)
+                                      Hash Cond: (fact_status.operator_id = dim_operator.operator_id)
+                                      ->  Parallel Seq Scan on fact_status  (cost=0.00..13162.15 rows=255015 width=16) (actual time=0.005..52.139 rows=204012 loops=3)
+                                      ->  Hash  (cost=51.59..51.59 rows=22 width=4) (actual time=1.076..1.077 rows=22 loops=3)
+                                            Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                            ->  Seq Scan on dim_operator  (cost=0.00..51.59 rows=22 width=4) (actual time=0.930..1.073 rows=22 loops=3)
+                                                  Filter: ((country)::text = 'Switzerland'::text)
+                                                  Rows Removed by Filter: 2105
+                                ->  Hash  (cost=1.56..1.56 rows=56 width=12) (actual time=0.015..0.015 rows=56 loops=3)
+                                      Buckets: 1024  Batches: 1  Memory Usage: 11kB
+                                      ->  Seq Scan on dim_car  (cost=0.00..1.56 rows=56 width=12) (actual time=0.005..0.009 rows=56 loops=3)
+                          ->  Hash  (cost=2.21..2.21 rows=121 width=4) (actual time=0.027..0.028 rows=121 loops=3)
+                                Buckets: 1024  Batches: 1  Memory Usage: 13kB
+                                ->  Seq Scan on dim_date  (cost=0.00..2.21 rows=121 width=4) (actual time=0.008..0.015 rows=121 loops=3)
+Planning Time: 0.889 ms
+Execution Time: 106.004 ms
+
+
+
+- Time to execute the modified query: 1.5 milliseconds
+
+- Explain plan of the modified query:
 > paste output of explain analyse select... (as plain text, not JSON!)
-...
+QUERY PLAN
+GroupAggregate  (cost=46747.11..46795.13 rows=55 width=16) (actual time=1.313..1.471 rows=11 loops=1)
+  Group Key: dim_car.license_plate
+  ->  Sort  (cost=46747.11..46762.93 rows=6330 width=12) (actual time=1.298..1.346 rows=1524 loops=1)
+        Sort Key: dim_car.license_plate
+        Sort Method: quicksort  Memory: 132kB
+        ->  Nested Loop  (cost=152.07..46347.43 rows=6330 width=12) (actual time=0.055..1.024 rows=1524 loops=1)
+              ->  Nested Loop  (cost=151.92..46182.02 rows=6330 width=8) (actual time=0.051..0.687 rows=1524 loops=1)
+                    ->  Index Scan using dim_operator_pkey on dim_operator  (cost=0.28..97.50 rows=22 width=4) (actual time=0.034..0.271 rows=22 loops=1)
+                          Filter: ((country)::text = 'Switzerland'::text)
+                          Rows Removed by Filter: 2105
+                    ->  Bitmap Heap Scan on fact_status  (cost=151.64..1952.42 rows=14233 width=12) (actual time=0.003..0.010 rows=69 loops=22)
+                          Recheck Cond: (operator_id = dim_operator.operator_id)
+                          Heap Blocks: exact=64
+                          ->  Bitmap Index Scan on fact_status_operator_id  (cost=0.00..148.08 rows=14233 width=0) (actual time=0.002..0.002 rows=69 loops=22)
+                                Index Cond: (operator_id = dim_operator.operator_id)
+              ->  Memoize  (cost=0.15..0.17 rows=1 width=12) (actual time=0.000..0.000 rows=1 loops=1524)
+                    Cache Key: fact_status.car_id
+                    Cache Mode: logical
+                    Hits: 1513  Misses: 11  Evictions: 0  Overflows: 0  Memory Usage: 2kB
+                    ->  Index Scan using dim_car_pkey on dim_car  (cost=0.14..0.16 rows=1 width=12) (actual time=0.001..0.001 rows=1 loops=11)
+                          Index Cond: (car_id = fact_status.car_id)
+Planning Time: 0.246 ms
+Execution Time: 1.510 ms
 
-
-- Time to execute the modified query: ... milliseconds
-
-- Explain plan of the unmodifed query:
-> paste output of explain analyse select... (as plain text, not JSON!)
-...
 
 
 - Comment on the idea of optimization:
-> e.g., indexes, query rewrite
- ...
+We created only one index:
+```SQL
+CREATE INDEX IF NOT EXISTS fact_status_operator_id ON fact_status(operator_id);
+```
+
+and then disabled seqscan and modified the query:
+```SQL
+SET enable_seqscan = OFF;
+
+EXPLAIN ANALYZE
+SELECT license_plate, SUM(conn_count)
+FROM dim_car
+JOIN fact_status USING (car_id)
+JOIN dim_operator USING (operator_id)
+WHERE country='Switzerland'
+GROUP BY license_plate ORDER BY license_plate
+```
+
+Notes:
+- We noticed that we do not actually need the joined dim_date
+- We figured out that it is better to select from dim_car table and join the fact_status to it
+
 

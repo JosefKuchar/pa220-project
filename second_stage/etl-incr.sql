@@ -122,11 +122,3 @@ WHERE  ( f.time BETWEEN car.valid_from AND car.valid_to
        AND ( f.time BETWEEN driver.valid_from AND driver.valid_to
               OR driver.current_row = 'active' OR driver.driver_key IS NULL)
 	   AND f.time IS NOT NULL;
-
--- It must be able to run as is, i.e., psql <etl-incr.sql
-
--- This script may not be "idempotent", so you may not include commands for "new data cleanup"
-
--- car_info_upd
--- fact_status_upd
---
