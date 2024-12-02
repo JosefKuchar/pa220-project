@@ -1,0 +1,13 @@
+(Definitions of newly added tables for Page 2 visual)
+
+PositionTable = CALCULATETABLE(
+    ADDCOLUMNS(
+        'public fact_status',
+        "Latitude",
+        MID('public fact_status'[pos_gps], 2, FIND(",", 'public fact_status'[pos_gps]) - 2),
+        "Longitude",
+        MID('public fact_status'[pos_gps], FIND(",", 'public fact_status'[pos_gps]) + 1, LEN('public fact_status'[pos_gps]) - FIND(",", 'public fact_status'[pos_gps]) - 1)
+    )
+)
+
+We then created the relation with dim_car and dim_company from the GUI.
